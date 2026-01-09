@@ -21,6 +21,14 @@ class Task:
     def mark_done(self):
         self.status = "done"
 
+    @property
+    def due_date(self) -> Optional[datetime]:
+        return self.due
+
+    @due_date.setter
+    def due_date(self, value: Optional[datetime]) -> None:
+        self.due = value
+
     def to_dict(self):
         d = asdict(self)
         d["created_at"] = self.created_at.isoformat()
