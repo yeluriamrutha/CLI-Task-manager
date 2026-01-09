@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 from typing import List, Optional
+from datetime import datetime
 
 from .models import Task, Project
 
@@ -51,19 +52,20 @@ class SQLiteStorage:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT OR REPLACE INTO tasks (id, title, status, due_date, project, tags)
+                INSERT OR REPLACE INTO tasks
+                (id, title, status, due_date, project, tags)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     task.id,
                     task.title,
                     task.status,
-                    task.due_date,
-                    task.project,
+                    task.due.isoformat() if task.due else None,
+                    None,
                     ",".join(task.tags),
                 ),
-            )
-            conn.commit()
+            )    
+
 
 
     def get_task(self, task_id: str) -> Optional[Task]:
@@ -82,7 +84,7 @@ class SQLiteStorage:
                 id=row[0],
                 title=row[1],
                 status=row[2],
-                due_date=row[3],
+                due=datetime.fromisoformat(row[3]) if row[3] else None,
                 project=row[4],
                 tags=row[5].split(",") if row[5] else [],
             )
