@@ -51,7 +51,7 @@ class SQLiteStorage:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO tasks (id, title, status, due_date, project, tags)
+                INSERT OR REPLACE INTO tasks (id, title, status, due_date, project, tags)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -63,6 +63,8 @@ class SQLiteStorage:
                     ",".join(task.tags),
                 ),
             )
+            conn.commit()
+
 
     def get_task(self, task_id: str) -> Optional[Task]:
         with self._connect() as conn:
