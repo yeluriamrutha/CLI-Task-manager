@@ -45,3 +45,11 @@ class InMemoryRepository:
 
     def delete_project(self, project_id):
         self.projects.pop(project_id, None)
+    
+    def list_projects(self):
+        return list(self.projects.values())
+    
+    def list_projects(self):
+        return list(self.projects.values())
+
+
