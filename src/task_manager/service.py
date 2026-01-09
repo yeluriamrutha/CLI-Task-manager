@@ -47,6 +47,10 @@ class TaskManager:
         t.validate()
         self.repo.save_task(t)
         return t
+    
+    def list_tasks(self):
+        return self.repo.list_tasks()
+
 
     def _blocking_dependencies(self, task: Task) -> List[str]:
         """Return list of dependency IDs that are not done or missing."""
@@ -96,3 +100,5 @@ class TaskManager:
         done = sum(1 for t in tasks if t.status == "done")
         open_count = total - done
         return {"project": p.name, "total": total, "done": done, "open": open_count}
+    
+
