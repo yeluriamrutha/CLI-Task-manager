@@ -34,7 +34,7 @@ class SQLiteStorage:
                     status TEXT NOT NULL,
                     due_date TEXT,
                     project TEXT,
-                    tags TEX
+                    tags TEXT
                 )
             """)
 
@@ -115,5 +115,8 @@ class SQLiteStorage:
                 (task_id,),
             )
     def delete_project(self, project_id: str) -> None:
-        self.conn.execute("DELETE FROM projects WHERE id = ?", (project_id,))
-        self.conn.commit()
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM tasks WHERE project = ?", (project_id,))
+            cursor.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+
