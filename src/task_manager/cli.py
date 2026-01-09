@@ -89,7 +89,8 @@ def update_task(task_id, title, description, due, priority, status, tags):
 @click.option("--tag", default=None, help="Filter by tag")
 def list_tasks(project, tag):
     # ✅ FIX: use TaskManager, not storage
-    tasks = get_manager().list_tasks()
+    tasks = storage.list_tasks()
+
 
     if project:
         p = get_manager().find_project_by_name(project)
@@ -116,7 +117,8 @@ def list_tasks(project, tag):
 @click.argument("task_id")
 def show_task(task_id):
     # ✅ FIX: use TaskManager, not storage
-    t = get_manager().get_task(task_id)
+    t = storage.get_task(task_id)
+
     if not t:
         click.echo(f"Task {task_id} not found")
         return
