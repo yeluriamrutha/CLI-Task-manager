@@ -1,2 +1,7 @@
 click==8.1.7
 pytest==7.4.0
+
+# dev tools for Day 4
+black==23.9.1
+flake8==6.0.0
+mypy==1.7.0
