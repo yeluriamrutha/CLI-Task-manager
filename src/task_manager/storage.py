@@ -72,12 +72,11 @@ class SQLiteStorage:
         with self._connect() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, title, status, due_date, project, tags FROM tasks WHERE id = ?",
+                "SELECT id, title, status, due_date, tags FROM tasks WHERE id = ?",
                 (task_id,),
             )
             row = cursor.fetchone()
-
-            if row is None:
+            if not row:
                 return None
 
             return Task(
@@ -85,18 +84,18 @@ class SQLiteStorage:
                 title=row[1],
                 status=row[2],
                 due=datetime.fromisoformat(row[3]) if row[3] else None,
-                project=row[4],
-                tags=row[5].split(",") if row[5] else [],
+                tags=row[4].split(",") if row[4] else [],
             )
+
 
     def list_tasks(self) -> List[Task]:
         with self._connect() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, title, status, due_date, project, tags FROM tasks"
+                "SELECT id, title, status, due_date, tags FROM tasks"
             )
             rows = cursor.fetchall()
-
+            
             tasks = []
             for row in rows:
                 tasks.append(
@@ -104,12 +103,12 @@ class SQLiteStorage:
                         id=row[0],
                         title=row[1],
                         status=row[2],
-                        due_date=row[3],
-                        project=row[4],
-                        tags=row[5].split(",") if row[5] else [],
+                        due=datetime.fromisoformat(row[3]) if row[3] else None,
+                        tags=row[4].split(",") if row[4] else [],
                     )
                 )
             return tasks
+
 
     def complete_task(self, task_id: str) -> None:
         with self._connect() as conn:
@@ -123,4 +122,36 @@ class SQLiteStorage:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM tasks WHERE project = ?", (project_id,))
             cursor.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+
+    def list_projects(self) -> List[Project]:
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, name FROM projects"
+                )
+            rows = cursor.fetchall()
+                
+            projects = []
+            for row in rows:
+                cursor.execute(
+                    "SELECT id FROM tasks WHERE project = ?",
+                    (row[0],)
+                )
+                task_ids = [r[0] for r in cursor.fetchall()]
+                projects.append(
+                    Project(
+                        id=row[0],
+                        name=row[1],
+                        task_ids=task_ids,
+                    )
+                )
+            return projects
+    
+    def delete_task(self, task_id: str) -> None:
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM tasks WHERE id = ?",
+                (task_id,),
+            )
 

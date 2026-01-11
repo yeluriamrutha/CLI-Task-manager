@@ -13,14 +13,15 @@ class Task:
     description: str = ""
     created_at: datetime = field(default_factory=datetime.utcnow)
     due: Optional[datetime] = None
-    priority: int = 3  # 1-high .. 5-low
-    status: str = "open"  # open, in-progress, done
+    priority: int = 3
+    status: str = "open"
     tags: List[str] = field(default_factory=list)
-    deps: List[str] = field(default_factory=list)  # dependency task ids
+    deps: List[str] = field(default_factory=list)
 
     def mark_done(self):
         self.status = "done"
 
+    # ✅ REQUIRED by SQLiteStorage
     @property
     def due_date(self) -> Optional[datetime]:
         return self.due
@@ -43,14 +44,13 @@ class Task:
         return cls(**dd)
 
     def validate(self) -> None:
-        if not self.title or not self.title.strip():
+        if not self.title.strip():
             raise ValueError("title must be non-empty")
         if not (1 <= self.priority <= 5):
             raise ValueError("priority must be between 1 and 5")
         if self.status not in VALID_STATUSES:
             raise ValueError(f"status must be one of {VALID_STATUSES}")
-        if not isinstance(self.tags, list):
-            raise ValueError("tags must be a list")
+
 
 @dataclass
 class Project:
