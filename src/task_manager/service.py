@@ -4,8 +4,10 @@ from .models import Task, Project
 from .repository import Repository
 from datetime import datetime
 
+
 class BusinessError(Exception):
     """Raised for domain/business rule violations."""
+
 
 class TaskManager:
     def __init__(self, repo: Repository):
@@ -21,11 +23,17 @@ class TaskManager:
         project_name: Optional[str] = None,
     ) -> Task:
         tags = list(tags or [])
-        t = Task(title=title, description=description, due=due, priority=priority, tags=tags)
+        t = Task(
+            title=title, description=description, due=due, priority=priority, tags=tags
+        )
         t.validate()  # ensure basic validation before save
         self.repo.save_task(t)
         if project_name:
-            p = self.repo.find_project_by_name(project_name) if hasattr(self.repo, "find_project_by_name") else None
+            p = (
+                self.repo.find_project_by_name(project_name)
+                if hasattr(self.repo, "find_project_by_name")
+                else None
+            )
             if p:
                 p.add_task(t)
                 self.repo.save_project(p)
@@ -47,10 +55,9 @@ class TaskManager:
         t.validate()
         self.repo.save_task(t)
         return t
-    
+
     def list_tasks(self):
         return self.repo.list_tasks()
-
 
     def _blocking_dependencies(self, task: Task) -> List[str]:
         """Return list of dependency IDs that are not done or missing."""
@@ -95,10 +102,10 @@ class TaskManager:
         p = self.repo.get_project(project_id)
         if not p:
             raise BusinessError(f"Project {project_id} not found")
-        tasks = [self.repo.get_task(tid) for tid in p.task_ids if self.repo.get_task(tid)]
+        tasks = [
+            self.repo.get_task(tid) for tid in p.task_ids if self.repo.get_task(tid)
+        ]
         total = len(tasks)
         done = sum(1 for t in tasks if t.status == "done")
         open_count = total - done
         return {"project": p.name, "total": total, "done": done, "open": open_count}
-    
-

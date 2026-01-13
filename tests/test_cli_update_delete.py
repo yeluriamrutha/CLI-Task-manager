@@ -3,6 +3,7 @@ from click.testing import CliRunner
 from task_manager import cli
 from task_manager.storage import SQLiteStorage
 
+
 def test_cli_update_and_delete(tmp_path, monkeypatch):
     db_file = tmp_path / "cli_ud.db"
     monkeypatch.setattr(cli, "storage", SQLiteStorage(str(db_file)))

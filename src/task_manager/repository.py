@@ -4,7 +4,6 @@ from .models import Task
 
 
 class Repository(ABC):
-
     @abstractmethod
     def add_task(self, task: Task) -> None:
         pass
@@ -12,6 +11,8 @@ class Repository(ABC):
     @abstractmethod
     def list_tasks(self) -> List[Task]:
         pass
+
+
 class InMemoryRepository:
     def __init__(self):
         self.tasks = {}
@@ -45,11 +46,9 @@ class InMemoryRepository:
 
     def delete_project(self, project_id):
         self.projects.pop(project_id, None)
-    
-    def list_projects(self):
-        return list(self.projects.values())
-    
+
     def list_projects(self):
         return list(self.projects.values())
 
-
+    def list_projects(self):
+        return list(self.projects.values())

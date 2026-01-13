@@ -6,6 +6,7 @@ import uuid
 
 VALID_STATUSES = {"open", "in-progress", "done"}
 
+
 @dataclass
 class Task:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -71,4 +72,8 @@ class Project:
 
     @classmethod
     def from_dict(cls, d):
-        return cls(id=d.get("id", str(uuid.uuid4())), name=d["name"], task_ids=d.get("task_ids", []))
+        return cls(
+            id=d.get("id", str(uuid.uuid4())),
+            name=d["name"],
+            task_ids=d.get("task_ids", []),
+        )

@@ -21,14 +21,17 @@ class SQLiteStorage:
         with self._connect() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS projects (
                     id TEXT PRIMARY KEY,
                     name TEXT UNIQUE NOT NULL
                 )
-            """)
+            """
+            )
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tasks (
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -37,7 +40,8 @@ class SQLiteStorage:
                     project TEXT,
                     tags TEXT
                 )
-            """)
+            """
+            )
 
     def save_project(self, project: Project) -> None:
         with self._connect() as conn:
@@ -64,9 +68,7 @@ class SQLiteStorage:
                     None,
                     ",".join(task.tags),
                 ),
-            )    
-
-
+            )
 
     def get_task(self, task_id: str) -> Optional[Task]:
         with self._connect() as conn:
@@ -87,15 +89,12 @@ class SQLiteStorage:
                 tags=row[4].split(",") if row[4] else [],
             )
 
-
     def list_tasks(self) -> List[Task]:
         with self._connect() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id, title, status, due_date, tags FROM tasks"
-            )
+            cursor.execute("SELECT id, title, status, due_date, tags FROM tasks")
             rows = cursor.fetchall()
-            
+
             tasks = []
             for row in rows:
                 tasks.append(
@@ -109,7 +108,6 @@ class SQLiteStorage:
                 )
             return tasks
 
-
     def complete_task(self, task_id: str) -> None:
         with self._connect() as conn:
             cursor = conn.cursor()
@@ -117,6 +115,7 @@ class SQLiteStorage:
                 "UPDATE tasks SET status = 'done' WHERE id = ?",
                 (task_id,),
             )
+
     def delete_project(self, project_id: str) -> None:
         with self._connect() as conn:
             cursor = conn.cursor()
@@ -126,17 +125,12 @@ class SQLiteStorage:
     def list_projects(self) -> List[Project]:
         with self._connect() as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id, name FROM projects"
-                )
+            cursor.execute("SELECT id, name FROM projects")
             rows = cursor.fetchall()
-                
+
             projects = []
             for row in rows:
-                cursor.execute(
-                    "SELECT id FROM tasks WHERE project = ?",
-                    (row[0],)
-                )
+                cursor.execute("SELECT id FROM tasks WHERE project = ?", (row[0],))
                 task_ids = [r[0] for r in cursor.fetchall()]
                 projects.append(
                     Project(
@@ -146,7 +140,7 @@ class SQLiteStorage:
                     )
                 )
             return projects
-    
+
     def delete_task(self, task_id: str) -> None:
         with self._connect() as conn:
             cursor = conn.cursor()
@@ -154,4 +148,3 @@ class SQLiteStorage:
                 "DELETE FROM tasks WHERE id = ?",
                 (task_id,),
             )
-

@@ -2,6 +2,7 @@ from task_manager.repository import InMemoryRepository
 from task_manager.service import TaskManager, BusinessError
 from task_manager.models import Task, Project
 
+
 def test_dependencies_block_completion():
     repo = InMemoryRepository()
     mgr = TaskManager(repo)
@@ -19,6 +20,7 @@ def test_dependencies_block_completion():
     except BusinessError:
         pass
 
+
 def test_complete_after_deps_done():
     repo = InMemoryRepository()
     mgr = TaskManager(repo)
@@ -31,6 +33,7 @@ def test_complete_after_deps_done():
     # now t2 can be completed
     mgr.mark_complete(t2.id)
     assert repo.get_task(t2.id).status == "done"
+
 
 def test_delete_task_removes_from_project():
     repo = InMemoryRepository()

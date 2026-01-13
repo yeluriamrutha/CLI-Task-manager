@@ -9,7 +9,11 @@ from .service import TaskManager, BusinessError
 
 # Default DB file in repo root (can be overridden in future)
 storage: SQLiteStorage = SQLiteStorage("task_data.db")
-manager: TaskManager = TaskManager(storage)
+
+
+# manager: TaskManager = TaskManager(storage)
+def get_manager() -> TaskManager:
+    return TaskManager(storage)
 
 
 @click.group()
@@ -49,7 +53,7 @@ def create_task(
 ) -> None:
     due_dt = _parse_due(due)
     try:
-        t = manager.create_task(
+        t = get_manager().create_task(
             title=title,
             description=description,
             due=due_dt,
@@ -93,7 +97,7 @@ def update_task(
     if tags:
         fields["tags"] = list(tags)
     try:
-        t = manager.update_task(task_id, **fields)
+        t = get_manager().update_task(task_id, **fields)
         click.echo(f"Updated task {t.id} | {t.title}")
     except BusinessError as e:
         click.echo(f"Business error: {e}")
@@ -104,10 +108,23 @@ def update_task(
 @cli.command("list-tasks")
 @click.option("--project", default=None, help="Filter tasks by project name")
 @click.option("--tag", default=None, help="Filter by tag")
-@click.option("--due-before", default=None, help="Show tasks due on or before this date (YYYY-MM-DD or ISO)")
-@click.option("--overdue", is_flag=True, default=False, help="Show overdue tasks (due < today and not done)")
-def list_tasks(project: Optional[str], tag: Optional[str], due_before: Optional[str], overdue: bool) -> None:
-    tasks = storage.list_tasks()
+@click.option(
+    "--due-before",
+    default=None,
+    help="Show tasks due on or before this date (YYYY-MM-DD or ISO)",
+)
+@click.option(
+    "--overdue",
+    is_flag=True,
+    default=False,
+    help="Show overdue tasks (due < today and not done)",
+)
+def list_tasks(
+    project: Optional[str], tag: Optional[str], due_before: Optional[str], overdue: bool
+) -> None:
+    # tasks = storage.list_tasks()
+    tasks = get_manager().list_tasks()
+
     # project filter
     if project:
         p = storage.find_project_by_name(project)
@@ -126,7 +143,9 @@ def list_tasks(project: Optional[str], tag: Optional[str], due_before: Optional[
     # overdue filter
     if overdue:
         today = datetime.utcnow().date()
-        tasks = [t for t in tasks if t.due and t.status != "done" and t.due.date() < today]
+        tasks = [
+            t for t in tasks if t.due and t.status != "done" and t.due.date() < today
+        ]
 
     if not tasks:
         click.echo("No tasks.")
@@ -134,7 +153,9 @@ def list_tasks(project: Optional[str], tag: Optional[str], due_before: Optional[
 
     for t in sorted(tasks, key=lambda x: (x.status, x.priority)):
         due_str = t.due.isoformat() if t.due else "—"
-        click.echo(f"{t.id[:8]} | {t.title} | {t.status} | due:{due_str} | prio:{t.priority} | tags:{','.join(t.tags)}")
+        click.echo(
+            f"{t.id[:8]} | {t.title} | {t.status} | due:{due_str} | prio:{t.priority} | tags:{','.join(t.tags)}"
+        )
 
 
 @cli.command("show-task")
@@ -151,7 +172,7 @@ def show_task(task_id: str) -> None:
 @click.argument("task_id")
 def complete_task(task_id: str) -> None:
     try:
-        _ = manager.mark_complete(task_id)
+        _ = get_manager().mark_complete(task_id)
         click.echo(f"Marked {task_id} as done")
     except BusinessError as e:
         click.echo(f"Cannot complete task: {e}")
@@ -161,7 +182,7 @@ def complete_task(task_id: str) -> None:
 @click.argument("task_id")
 def delete_task(task_id: str) -> None:
     try:
-        manager.delete_task(task_id)
+        get_manager().delete_task(task_id)
         click.echo(f"Deleted task {task_id}")
     except BusinessError as e:
         click.echo(f"Cannot delete task: {e}")
