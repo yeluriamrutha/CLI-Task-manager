@@ -7,8 +7,19 @@ from .models import Task, Project
 from .storage import SQLiteStorage
 from .service import TaskManager, BusinessError
 
+from .commands import (
+    UndoManager,
+    CreateTaskCommand,
+    UpdateTaskCommand,
+    CompleteTaskCommand,
+    DeleteTaskCommand,
+)
+
+
 # Default DB file in repo root (can be overridden in future)
 storage: SQLiteStorage = SQLiteStorage("task_data.db")
+
+undo_manager = UndoManager()
 
 
 # manager: TaskManager = TaskManager(storage)
@@ -53,7 +64,7 @@ def create_task(
 ) -> None:
     due_dt = _parse_due(due)
     try:
-        t = get_manager().create_task(
+        '''t = get_manager().create_task(
             title=title,
             description=description,
             due=due_dt,
@@ -61,7 +72,23 @@ def create_task(
             tags=list(tag),
             project_name=project,
         )
-        click.echo(f"Created task {t.id} | {t.title}")
+        click.echo(f"Created task {t.id} | {t.title}")'''
+
+        manager = get_manager()
+        cmd = CreateTaskCommand(
+            manager,
+            title=title,
+            description=description,
+            due=due_dt,
+            priority=priority,
+            tags=list(tag),
+            project=project,
+        )
+        undo_manager.execute(cmd)
+
+        click.echo("Task created (undo available)")
+
+
     except Exception as e:
         click.echo(f"Error: {e}")
 
@@ -204,6 +231,22 @@ def create_project(name: str) -> None:
 def list_projects() -> None:
     for p in storage.list_projects():
         click.echo(f"{p.id[:8]} | {p.name} | tasks:{len(p.task_ids)}")
+
+@cli.command("undo")
+def undo() -> None:
+    try:
+        undo_manager.undo()
+        click.echo("Last action undone")
+    except BusinessError as e:
+        click.echo(str(e))
+
+@cli.command("redo")
+def redo() -> None:
+    try:
+        undo_manager.redo()
+        click.echo("Last action redone")
+    except BusinessError as e:
+        click.echo(str(e))
 
 
 if __name__ == "__main__":

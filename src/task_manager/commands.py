@@ -35,7 +35,7 @@ class UndoManager:
         command = self._redo_stack.pop()
         command.execute()
         self._undo_stack.append(command)
-class CreateTaskCommand(Command):
+'''class CreateTaskCommand(Command):
     def __init__(self, manager: TaskManager, project: str, title: str):
         self.manager = manager
         self.project = project
@@ -49,7 +49,45 @@ class CreateTaskCommand(Command):
     def undo(self) -> None:
         if self.task_id is None:
             raise BusinessError("No task to undo")
+        self.manager.delete_task(self.task_id)'''
+
+class CreateTaskCommand(Command):
+    def __init__(
+        self,
+        manager: TaskManager,
+        title: str,
+        description: str = "",
+        due=None,
+        priority: int = 3,
+        tags=None,
+        project: Optional[str] = None,
+    ):
+        self.manager = manager
+        self.title = title
+        self.description = description
+        self.due = due
+        self.priority = priority
+        self.tags = tags or []
+        self.project = project
+        self.task_id: Optional[str] = None
+
+    def execute(self) -> None:
+        task = self.manager.create_task(
+            title=self.title,
+            description=self.description,
+            due=self.due,
+            priority=self.priority,
+            tags=self.tags,
+            project_name=self.project,
+        )
+        self.task_id = task.id
+
+    def undo(self) -> None:
+        if self.task_id is None:
+            raise BusinessError("No task to undo")
         self.manager.delete_task(self.task_id)
+
+
 class UpdateTaskCommand(Command):
     def __init__(self, manager: TaskManager, task_id: str, new_title: str):
         self.manager = manager
