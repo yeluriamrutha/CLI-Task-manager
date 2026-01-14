@@ -109,3 +109,17 @@ class TaskManager:
         done = sum(1 for t in tasks if t.status == "done")
         open_count = total - done
         return {"project": p.name, "total": total, "done": done, "open": open_count}
+
+    def get_task(self, task_id: str) -> Task:
+        task = self.repo.get_task(task_id)
+        if task is None:
+            raise BusinessError("Task not found")
+        return task
+
+    def uncomplete_task(self, task_id: str) -> None:
+        task = self.get_task(task_id)
+        task.completed = False
+        self.repo.save_task(task)
+        
+    def restore_task(self, task: Task) -> None:
+        self.repo.save_task(task)
