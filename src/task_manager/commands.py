@@ -50,3 +50,48 @@ class CreateTaskCommand(Command):
         if self.task_id is None:
             raise BusinessError("No task to undo")
         self.manager.delete_task(self.task_id)
+class UpdateTaskCommand(Command):
+    def __init__(self, manager: TaskManager, task_id: str, new_title: str):
+        self.manager = manager
+        self.task_id = task_id
+        self.new_title = new_title
+        self.old_title: Optional[str] = None
+
+    def execute(self) -> None:
+        task = self.manager.get_task(self.task_id)
+        self.old_title = task.title
+        self.manager.update_task(self.task_id, self.new_title)
+
+    def undo(self) -> None:
+        if self.old_title is None:
+            raise BusinessError("No update to undo")
+        self.manager.update_task(self.task_id, self.old_title)
+class CompleteTaskCommand(Command):
+    def __init__(self, manager: TaskManager, task_id: str):
+        self.manager = manager
+        self.task_id = task_id
+        self.was_completed: Optional[bool] = None
+
+    def execute(self) -> None:
+        task = self.manager.get_task(self.task_id)
+        self.was_completed = task.completed
+        self.manager.complete_task(self.task_id)
+
+    def undo(self) -> None:
+        if self.was_completed is False:
+            self.manager.uncomplete_task(self.task_id)
+class DeleteTaskCommand(Command):
+    def __init__(self, manager: TaskManager, task_id: str):
+        self.manager = manager
+        self.task_id = task_id
+        self.backup_task: Optional[Task] = None
+
+    def execute(self) -> None:
+        task = self.manager.get_task(self.task_id)
+        self.backup_task = task
+        self.manager.delete_task(self.task_id)
+
+    def undo(self) -> None:
+        if self.backup_task is None:
+            raise BusinessError("No delete to undo")
+        self.manager.restore_task(self.backup_task)
